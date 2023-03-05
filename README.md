@@ -50,7 +50,7 @@ B.新建材质函数并应用在M_Snow中
 
 C.蓝图中添加全局变量材质参数
 
-<img src="img/image-20230305183437385.png" alt="image-20230305183437385" style="zoom:67%;" />
+<img src="img/image-20230305183437385.png" alt="image-20230305183437385" style="zoom: 50%;" />
 
 ##### 2.3.BP_Paintboard：Set MPC和更新World2UV
 
@@ -79,3 +79,26 @@ A .怎么随心创建固定大小位置的雪地？
 在材质函数摄入MPC全局参数中设置UV，使得世界坐标原点映射到UV（0，0）；同时将人的坐标在BP中也同样转换，BP承担另一个作用设置MPC；
 
 B.改变雪地size脚印会变形？目前RT还是固定大小，没有根据size变化而改变。
+
+### 3.雪地跟随
+
+##### 3.1.位置更新：函数LocUpdateWithPawn
+
+需要更新的有1.变量position；2.Debug框位置；3.MFC位置；对三部分复制set
+
+![image-20230305230926470](img/image-20230305230926470.png)
+
+3.2. 
+
+A.
+
+B.每次更新位置的时候，把当前 position 设置为 last position，在我们把我们新更新出来的位置给它 set 出来。
+
+##### 3.QA
+
+A.用材质来绘制 render target有什么注意的？
+使用材质绘制 render target 的时候，其实可以只有不透明度通道和 emissive colour这两个通道是有效的。
+
+B.为什么不能直接把 a 平移后绘制在 a 上。而要先把 a 放到其他上面，然后再把它绘制回来？
+
+无法再绘制一张 r t 的同时对它进行采样
