@@ -84,6 +84,8 @@ B.改变雪地size脚印会变形？目前RT还是固定大小，没有根据siz
 
 ##### 3.1.本节效果
 
+![image-20230307224202978](img/image-20230307224202978.png)
+
 ##### 3.2.位置更新：函数UpdatePos
 
 需要更新的有1.变量position；2.Debug框位置；3.MFC位置；对三部分复制set
@@ -136,8 +138,76 @@ C.在3.5方法下出现两个问题：1）越到后面图片越模糊：重叠+�
 
 ![image-20230306023750068](img/image-20230306023750068.png)
 
-![image-20230306023855425](img/image-20230306023855425.png)
+下面这个注意是乘以像素,否size太大无法移动
+
+![image-20230308025415955](img/image-20230308025415955.png)
 
 2）边缘消融，通过控制透明度。
 
 ![image-20230306023723841](img/image-20230306023723841.png)
+
+### 4.雪地画笔
+
+##### 4.1.本节效果
+
+##### 4.2.让 brush 和画板通讯
+
+1）没有直接获取拥有组件的actor，只有按类获取 actor 或者按 tag 获取 actor。或者当你获取到了一些 actor 之后，先获取到人物的character，再拿到人物的actor，再按类获取，获取它上面的组件。我们既然希望这个组件附加在任何地方，或许显然可能有点不太方便。
+
+2）因此使用数组Array：Custom event brush+structure一收一发
+
+A.此步BP_Brush：
+
+<img src="img/image-20230307233556701.png" alt="image-20230307233556701" style="zoom:50%;" />
+
+B.将画板蓝图中的Draw Material后操作坍塌成Draw：
+
+拿到Info数组中的position和Size进行loop绘制，注意PixelSize需要Set=size/分辨率
+
+![image-20230307233829764](img/image-20230307233829764.png)
+
+C .在BP_Brush中Tick和画板中设置Info信息
+
+<img src="img/image-20230307234138069.png" alt="image-20230307234138069" style="zoom:80%;" />
+
+画板赋值
+
+<img src="img/image-20230307234154868.png" alt="image-20230307234154868" style="zoom: 50%;" />
+
+D .将BP_Brush附加到Char中**Mesh**中的左右脚，在Socket中切换成foot; 默认不是脚底，记得微调。
+
+目前效果：
+
+<img src="img/image-20230308000812685.png" alt="image-20230308000812685" style="zoom: 33%;" />
+
+##### 4.3.考量脚高度
+
+射线检测：1.没hit说明，脚比雪地高，不绘制；2.深浅效果：雪地高度-距离/雪地高度->（0,1）,直接影响rendercolor
+
+![image-20230308004627840](img/image-20230308004627840.png)
+
+![image-20230308004737728](img/image-20230308004737728.png)
+
+##### 4.4.雪是越踩越深的，不能直接按顺序遮挡
+
+需要根据以前脚印和现在求最小值
+
+A.在Draw Canvas to RT上多绘制一个材质M_Draw,其中Height通过draw中的动态材质实例创建
+
+
+
+![image-20230308014221527](img/image-20230308014221527.png)
+
+##### 4.5.QA
+
+###### A.actor component和scene component的区别？
+
+actor component 其实是直接附加在 actor 上的。 scene component是 actor component 的一种，它其实是继承自 actor component，它的区别在于它是有一个transform的
+
+###### B.如何保证 brush 始终是在 take 之前完成的?
+
+class setting->tick->模拟物理之后
+
+###### C.运行时帧数一直下降?
+
+每帧创建的Info没有清空,记得clear
